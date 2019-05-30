@@ -1,6 +1,4 @@
 var argv = require('yargs').argv;
-var gulpif = require('gulp-if');
-var rename = require('gulp-rename');
 var gulp = require('gulp');
 var plumber = require('gulp-plumber');
 var sass = require('gulp-sass');
