@@ -1,148 +1,59 @@
-var slides = [], blocks = [];
-var rhizotron = document.getElementById('rhizotron');
+var CLIENT_ID = "70054873586-honfn6r010f3us8u3788tdiqa367k9fa.apps.googleusercontent.com";
+var API_KEY = "AIzaSyBNNjv94fxFRt7rViAuhrd7qQ9dPOpQYj4";
+var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+var SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+var SPREADSHEET_ID = "1EnHIFnzv-ydeVJVK28VFci7IqDgG-wVKc0bGI0g3FL0";
 
-var THE_ID = 'be3fa69fe2c91baf1f1b5c8718db50a7e80002898e72fe2cc5e68e6b194defd9';
-var THE_SECRET = 'b34306525eccc295ca449f2cedba9b2109253c4293884fed6d14bc080ffe4d26';
-var RETURNED_CODE = 200;
-var YOUR_CALLBACK_URL = 'localhost:8888';
-var ACCESS_TOKEN = '89090c1b685a8b46ff8bde45114dbbb8c5168ff33bb0bba3db6156bdbe07817d';
+var rhizotron = document.querySelector("#rhizotron");
 
-function animateImages() {
-	var activeIndex = 0;
-	setInterval(function() {
-		var activeSlide = document.querySelector('.active');
-		if(activeSlide) {
-			activeSlide.classList.remove('active');
-		}
-		slides[activeIndex].classList.add('active');
-		if(activeIndex < slides.length - 1) {
-			activeIndex++;
-		} else {
-			activeIndex = 0;
-		}
-	}, 100);
-}
+function loadMedia(media) {
+	var url = media[0];
+	var date = new Date(media[1]);
+	var img = document.createElement("img");
+	img.onload = function(e) {
+		rhizotron.style.backgroundImage = "url("+url+")";
 
-function updateImages() {
-	blocks.forEach(function(block, i) {
-		if(!block.image){return}
-		var slideUrl = block.image.large.url;
-		var slide = document.createElement('div')
-		slide.classList.add('slide');
-		slide.style = 'background-image:url('+slideUrl+')';
-		slides.push(slide);
-		rhizotron.appendChild(slide);
-	});
-	animateImages();
-}
-
-function getImages() {
-	var url = 'https://api.are.na/v2/channels/carbon-sponge-rhizotron/contents?per=99999999';
-	var request = new XMLHttpRequest();
-	request.onload = function(e) {
-	  if(request.status >= 200 && request.status < 400) {
-		var data = JSON.parse(request.responseText);
-		blocks = data.contents;
-		updateImages();
-	  } else {
-		console.warn(request.status);
-	  }
-	};
-
-	request.onerror = function(e) {
-	  console.warn(e);
-	};
-
-	request.open( 'GET', url, true);
-	request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-	request.setRequestHeader('Authorization', 'Bearer ' + ACCESS_TOKEN);
-	request.send();
-}
-
-function postImage(image) {
-	var content = 'Testing';
-	// var source = 'https://static1.squarespace.com/static/5ad3c6b59d5abb04c19830f2/5ad558b8f950b7baba216500/5ad55f1b575d1fe54a07a4a4/1548597033996/slideg.jpg';
-	var url = 'https://api.are.na/v2/channels/carbon-sponge-rhizotron/blocks?source='+source;
-	// var url = 'https://api.are.na/v2/channels/carbon-sponge-rhizotron/blocks?content='+content;
-	var request = new XMLHttpRequest();
-	request.onload = function(e) {
-	  if(request.status >= 200 && request.status < 400) {
-		var data = JSON.parse(request.responseText);
-		console.log(data);
-	  } else {
-		console.warn(request.status);
-	  }
-	};
-
-	request.onerror = function(e) {
+		var timestamp = document.createElement("div");
+		timestamp.classList.add("timestamp");
+		console.log(date);
+		timestamp.innerHTML = date;
+		rhizotron.append(timestamp);		
+	}
+	img.onerror = function(e) {
 		console.warn(e);
+	}
+	img.src = url;
+}
+
+function getData() {
+	var range = "Images!A1:B5000";
+	var params = {
+		spreadsheetId: SPREADSHEET_ID,
+		range: range,
+		majorDimension: "ROWS"
 	};
-
-	request.open( 'POST', url, true);
-	request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-	request.setRequestHeader('Content-Transfer-Encoding', 'base64');
-	request.setRequestHeader('Authorization', 'Bearer ' + ACCESS_TOKEN);
-	request.send();
+	var request = gapi.client.sheets.spreadsheets.values.get(params);
+	request.then(function(response) {
+		var values = response.result.values;
+		values.shift();
+		var media = values[values.length-1];
+		loadMedia(media);
+	}, function(reason) {
+		console.error("error: " + reason.result.error.message);
+	});
 }
 
-// function getDataUri(url, callback) {
-// 	var filereader = new window.FileReader();
-//   filereader.readAsDataURL(this.response);
-// 	var image = new Image();
-// 	image.onload = function () {
-// 		var canvas = document.createElement('canvas');
-// 		canvas.width = this.naturalWidth;
-// 		canvas.height = this.naturalHeight;
-// 		canvas.getContext('2d').drawImage(this, 0, 0);
-// 		callback(canvas.toDataURL('image/jpg').replace(/^data:image\/(png|jpg);base64,/, ''));
-// 		callback(canvas.toDataURL('image/jpg'));
-// 	};
-// 	image.src = url;
-// }
-
-// function authenticate() {
-// 	// var url = 'https://dev.are.na/oauth/token?client_id='+THE_ID+'&client_secret='+THE_SECRET+'&code='+RETURNED_CODE+'&grant_type='+authorization_code+'&redirect_uri='+YOUR_CALLBACK_URL;
-// 	var url = 'https://dev.are.na/oauth/token?client_id='+THE_ID+'&client_secret='+THE_SECRET+'&grant_type=authorization_code&redirect_uri='+YOUR_CALLBACK_URL+'&code='+RETURNED_CODE;
-// 	console.log(url);
-// 	var request = new XMLHttpRequest();
-// 	request.open('GET', url, true);
-// 	request.onload = function(e) {
-// 	  if(request.status >= 200 && request.status < 400) {
-// 	    var data = JSON.parse(request.responseText);
-// 	    console.log(data);
-// 	  } else {
-// 	    console.warn(request.status);
-// 	  }
-// 	};
-
-// 	request.onerror = function(e) {
-// 	  console.warn(e);
-// 	};
-// 	request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-// 	request.setRequestHeader('Authorization', 'Bearer ' + ACCESS_TOKEN);
-// 	request.send();
-	
-// }
-function uploadFile(e) {
-	var reader  = new FileReader();
-  reader.addEventListener('load', function () {
-    postImage(reader.result);
-  }, false);
-
-  var file = e.target.files[0]
-  if (file) {
-    reader.readAsDataURL(file);
-  }
+function initClient() {
+	gapi.client.init({
+		"apiKey": API_KEY,
+		"clientId": CLIENT_ID,
+		"scope": SCOPE,
+		"discoveryDocs": ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+	}).then(function() {
+		getData();
+	});
 }
 
-window.onload = function() {
-	// getImages();
-	// getDataUri('./assets/icon.png', function(dataUri) {
-	// 	postImage(dataUri);
-	// });
-	// authenticate();
-
-	document.querySelector('input').addEventListener('change',uploadFile);
+function handleClientLoad() {
+	gapi.load("client:auth2", initClient);
 }
-
-
